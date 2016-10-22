@@ -43,8 +43,9 @@ public class SongListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         ViewHolder typedHolder = (ViewHolder) holder;
 
         Song song = mData.get(position);
+
         Glide.with(mContext)
-                .load(song.getPreviewUrl())
+                .load(song.getArtworkUrl100())
                 .into(typedHolder.mImage);
 
         typedHolder.mItemId = song.getTrackId();
