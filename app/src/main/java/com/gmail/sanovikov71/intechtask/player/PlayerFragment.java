@@ -6,11 +6,15 @@ import android.os.Message;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.gmail.sanovikov71.intechtask.R;
 import com.gmail.sanovikov71.intechtask.network.Song;
 
@@ -19,12 +23,16 @@ import java.lang.ref.WeakReference;
 public class PlayerFragment extends Fragment implements View.OnClickListener, UISetter {
 
     private static final String SONG_OBJECT = "song_object";
+    private static final int INVALID_VALUE = -1;
 
     private MusicHelper mMusicHelper;
     private SeekBar mSeekBar;
     private Button mButton;
 
     private UpdatesHandler mHandler;
+
+    private int mSongDuration = INVALID_VALUE;
+    private boolean mPlayerPrepared;
 
     public static PlayerFragment newInstance(Parcelable song) {
         Bundle args = new Bundle();
@@ -37,16 +45,33 @@ public class PlayerFragment extends Fragment implements View.OnClickListener, UI
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater,ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
         Song song = getArguments().getParcelable(SONG_OBJECT);
+        if (song != null) {
+            ImageView image = (ImageView) view.findViewById(R.id.image);
+            Glide.with(this).load(song.getArtworkUrl100()).into(image);
+            TextView name = (TextView) view.findViewById(R.id.name);
+            name.setText(song.getArtistName() + " - " + song.getTrackName());
+        }
 
         mSeekBar = (SeekBar) view.findViewById(R.id.seekbar);
+        // disables clicks
+        mSeekBar.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return true;
+            }
+        });
+
+        if (mSongDuration != INVALID_VALUE) {
+            mSeekBar.setMax(mSongDuration);
+        }
+
         mButton = (Button) view.findViewById(R.id.button);
         mButton.setOnClickListener(this);
 
-        mSeekBar.setMax(mMusicHelper.getDuration());
         mSeekBar.setProgress(mMusicHelper.getCurrentPosition());
         if (mMusicHelper.isPlaying()) {
             mButton.setText(getText(R.string.pause));
@@ -61,12 +86,14 @@ public class PlayerFragment extends Fragment implements View.OnClickListener, UI
 
     @Override
     public void onClick(View v) {
-        if (noMusic()) {
-            playSong();
-            startSeekBarUpdates();
-            mButton.setText(getText(R.string.pause));
+        if (!mMusicHelper.isPlaying()) {
+            if (mPlayerPrepared) {
+                mMusicHelper.play();
+                startSeekBarUpdates();
+                mButton.setText(getText(R.string.pause));
+            }
         } else {
-            pauseSong();
+            mMusicHelper.pause();
             stopSeekBarUpdates();
             mButton.setText(getText(R.string.start));
         }
@@ -82,16 +109,12 @@ public class PlayerFragment extends Fragment implements View.OnClickListener, UI
         mHandler.removeMessages(UpdatesHandler.SEEKBAR_UPDATE);
     }
 
-    private boolean noMusic() {
-        return !mMusicHelper.isPlaying();
-    }
-
-    private void playSong() {
-        mMusicHelper.play();
-    }
-
-    private void pauseSong() {
-        mMusicHelper.pause();
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mMusicHelper.isPlaying()) {
+            startSeekBarUpdates();
+        }
     }
 
     @Override
@@ -108,7 +131,14 @@ public class PlayerFragment extends Fragment implements View.OnClickListener, UI
 
     @Override
     public void playerStateObtained(int duration) {
-        mSeekBar.setMax(duration);
+        mPlayerPrepared = true;
+        mSongDuration = duration;
+        mSeekBar.setMax(mSongDuration);
+    }
+
+    @Override
+    public void songEnded() {
+        stopSeekBarUpdates();
     }
 
     public void setMusicHelper(MusicHelper musicHelper) {
@@ -138,6 +168,7 @@ public class PlayerFragment extends Fragment implements View.OnClickListener, UI
                     Message newMessage =
                             obtainMessage(UpdatesHandler.SEEKBAR_UPDATE, musicHelper.getCurrentPosition(), 0);
                     sendMessageDelayed(newMessage, DELAY_MILLIS);
+                    System.out.println("SEEKBAR UPDATE");
                 }
             }
         }

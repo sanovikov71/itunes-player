@@ -22,15 +22,17 @@ public class PlayerActivity extends AppCompatActivity {
 
         MusicHelper musicHelper = new MusicHelper();
         Song song = getIntent().getParcelableExtra(EXTRA_SONG);
-        if (song != null) {
-            musicHelper.prepareMediaPlayer(song.getPreviewUrl(), fragment);
-        }
 
         if (fragment == null) {
             fragment = PlayerFragment.newInstance(song);
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.player_container, fragment, FRAGMENT_TAG)
                     .commit();
+
+            if (song != null) {
+                musicHelper.prepareMediaPlayer(song.getPreviewUrl(), fragment);
+            }
+
             fragment.setMusicHelper(musicHelper);
         }
     }

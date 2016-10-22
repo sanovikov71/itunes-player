@@ -30,11 +30,12 @@ public class MusicHelper implements MediaPlayer.OnPreparedListener, MediaPlayer.
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        mUISetter.playerStateObtained(mp.getDuration());
     }
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-
+        mUISetter.songEnded();
     }
 
     void play() {
@@ -42,6 +43,7 @@ public class MusicHelper implements MediaPlayer.OnPreparedListener, MediaPlayer.
             mMediaPlayer.seekTo(mProgress);
             if (!mMediaPlayer.isPlaying()) {
                 mMediaPlayer.start();
+                System.out.println("Start here lol");
             }
         }
     }
@@ -72,4 +74,7 @@ public class MusicHelper implements MediaPlayer.OnPreparedListener, MediaPlayer.
         return mMediaPlayer.getCurrentPosition();
     }
 
+    public void seekTo(int progress) {
+        mMediaPlayer.seekTo(progress);
+    }
 }
