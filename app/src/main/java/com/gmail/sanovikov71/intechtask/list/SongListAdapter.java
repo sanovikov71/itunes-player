@@ -48,7 +48,7 @@ public class SongListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 .load(song.getArtworkUrl100())
                 .into(typedHolder.mImage);
 
-        typedHolder.mItemId = song.getTrackId();
+        typedHolder.mSong = song;
         typedHolder.mArtistName.setText(song.getArtistName());
         typedHolder.mTrackName.setText(song.getTrackName());
     }
@@ -65,7 +65,7 @@ public class SongListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     static class ViewHolder extends RecyclerView.ViewHolder {
 
-        int mItemId;
+        Song mSong;
         ImageView mImage;
         TextView mArtistName;
         TextView mTrackName;
@@ -80,7 +80,7 @@ public class SongListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(context, PlayerActivity.class);
-                    intent.putExtra(PlayerActivity.EXTRA_SONG_ID, mItemId);
+                    intent.putExtra(PlayerActivity.EXTRA_SONG, mSong);
                     context.startActivity(intent);
                 }
             });

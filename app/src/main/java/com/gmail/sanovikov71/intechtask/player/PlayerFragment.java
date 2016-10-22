@@ -3,7 +3,8 @@ package com.gmail.sanovikov71.intechtask.player;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.Nullable;
+import android.os.Parcelable;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,19 +12,23 @@ import android.widget.Button;
 import android.widget.SeekBar;
 
 import com.gmail.sanovikov71.intechtask.R;
+import com.gmail.sanovikov71.intechtask.network.Song;
 
 import java.lang.ref.WeakReference;
-import java.util.Random;
 
-public class PlayerFragment extends android.support.v4.app.Fragment implements View.OnClickListener {
+public class PlayerFragment extends Fragment implements View.OnClickListener, UISetter {
 
+    private static final String SONG_OBJECT = "song_object";
+
+    private MusicHelper mMusicHelper;
     private SeekBar mSeekBar;
     private Button mButton;
 
     private UpdatesHandler mHandler;
 
-    public static PlayerFragment newInstance() {
+    public static PlayerFragment newInstance(Parcelable song) {
         Bundle args = new Bundle();
+        args.putParcelable(SONG_OBJECT, song);
 
         PlayerFragment fragment = new PlayerFragment();
         fragment.setArguments(args);
@@ -31,17 +36,25 @@ public class PlayerFragment extends android.support.v4.app.Fragment implements V
         return fragment;
     }
 
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater,ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
-        mHandler =  new UpdatesHandler(this);
+        Song song = getArguments().getParcelable(SONG_OBJECT);
 
         mSeekBar = (SeekBar) view.findViewById(R.id.seekbar);
-
         mButton = (Button) view.findViewById(R.id.button);
         mButton.setOnClickListener(this);
+
+        mSeekBar.setMax(mMusicHelper.getDuration());
+        mSeekBar.setProgress(mMusicHelper.getCurrentPosition());
+        if (mMusicHelper.isPlaying()) {
+            mButton.setText(getText(R.string.pause));
+        } else {
+            mButton.setText(getText(R.string.start));
+        }
+
+        mHandler = new UpdatesHandler(mSeekBar, mMusicHelper);
 
         return view;
     }
@@ -49,39 +62,57 @@ public class PlayerFragment extends android.support.v4.app.Fragment implements V
     @Override
     public void onClick(View v) {
         if (noMusic()) {
-            play();
+            playSong();
             startSeekBarUpdates();
             mButton.setText(getText(R.string.pause));
         } else {
-            pause();
+            pauseSong();
             stopSeekBarUpdates();
             mButton.setText(getText(R.string.start));
         }
     }
 
     private void startSeekBarUpdates() {
-        mHandler.sendEmptyMessage(UpdatesHandler.SEEKBAR_UPDATE);
+        Message message =
+                mHandler.obtainMessage(UpdatesHandler.SEEKBAR_UPDATE, mMusicHelper.getCurrentPosition(), 0);
+        mHandler.sendMessage(message);
     }
-
 
     private void stopSeekBarUpdates() {
         mHandler.removeMessages(UpdatesHandler.SEEKBAR_UPDATE);
     }
 
     private boolean noMusic() {
-        return mButton.getText().equals(getText(R.string.start));
+        return !mMusicHelper.isPlaying();
     }
 
-    private void pause() {
-
+    private void playSong() {
+        mMusicHelper.play();
     }
 
-    private void play() {
-
+    private void pauseSong() {
+        mMusicHelper.pause();
     }
 
-    private void setSongProgress(int progress) {
-        mSeekBar.setProgress(progress);
+    @Override
+    public void onStop() {
+        super.onStop();
+        stopSeekBarUpdates();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mMusicHelper.releaseMediaPlayer();
+    }
+
+    @Override
+    public void playerStateObtained(int duration) {
+        mSeekBar.setMax(duration);
+    }
+
+    public void setMusicHelper(MusicHelper musicHelper) {
+        mMusicHelper = musicHelper;
     }
 
     private static class UpdatesHandler extends Handler {
@@ -89,20 +120,24 @@ public class PlayerFragment extends android.support.v4.app.Fragment implements V
         static final int SEEKBAR_UPDATE = 100;
         static final int DELAY_MILLIS = 1000;
 
-        private final WeakReference<PlayerFragment> mFragment;
+        private final WeakReference<SeekBar> mSeekBar;
+        private final WeakReference<MusicHelper> mMusicHelper;
 
-        public UpdatesHandler(PlayerFragment fragment) {
-            mFragment = new WeakReference<PlayerFragment>(fragment);
+        public UpdatesHandler(SeekBar seekBar, MusicHelper musicHelper) {
+            mSeekBar = new WeakReference<SeekBar>(seekBar);
+            mMusicHelper = new WeakReference<MusicHelper>(musicHelper);
         }
 
         @Override
         public void handleMessage(Message msg) {
-            Random r = new Random();
-            PlayerFragment fragment = mFragment.get();
-            if (fragment != null) {
+            SeekBar seekBar = mSeekBar.get();
+            MusicHelper musicHelper = mMusicHelper.get();
+            if (seekBar != null && musicHelper != null) {
                 if (msg.what == SEEKBAR_UPDATE) {
-                    sendEmptyMessageDelayed(SEEKBAR_UPDATE, DELAY_MILLIS);
-                    fragment.setSongProgress(r.nextInt(100));
+                    seekBar.setProgress(msg.arg1);
+                    Message newMessage =
+                            obtainMessage(UpdatesHandler.SEEKBAR_UPDATE, musicHelper.getCurrentPosition(), 0);
+                    sendMessageDelayed(newMessage, DELAY_MILLIS);
                 }
             }
         }
