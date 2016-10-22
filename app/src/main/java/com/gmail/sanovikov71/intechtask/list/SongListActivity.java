@@ -1,8 +1,10 @@
 package com.gmail.sanovikov71.intechtask.list;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -24,9 +26,12 @@ import retrofit2.Response;
 public class SongListActivity extends AppCompatActivity {
 
     private static final int MIN_TERM_LENGTH = 5;
+    private static final String SEARCH_QUERY = "SEARCH_QUERY";
 
     private SongListAdapter mAdapter;
     private MusicService mMusicService;
+    private String mSearchQuery;
+    private SearchView mSearchView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -36,11 +41,28 @@ public class SongListActivity extends AppCompatActivity {
         mMusicService = new DataSource().getService();
 
         final RecyclerView cardList = (RecyclerView) findViewById(R.id.song_list);
-        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        final LinearLayoutManager layoutManager;
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            layoutManager = new GridLayoutManager(this, 2);
+        } else {
+            layoutManager = new GridLayoutManager(this, 3);
+        }
         cardList.setLayoutManager(layoutManager);
         mAdapter = new SongListAdapter(this);
         cardList.setAdapter(mAdapter);
 
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(SEARCH_QUERY, mSearchQuery);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mSearchQuery = savedInstanceState.getString(SEARCH_QUERY);
     }
 
     @Override
@@ -54,8 +76,8 @@ public class SongListActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.search, menu);
 
         final MenuItem search = menu.findItem(R.id.action_search);
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(search);
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        mSearchView = (SearchView) MenuItemCompat.getActionView(search);
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 return false;
@@ -63,12 +85,14 @@ public class SongListActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String query) {
+                mSearchQuery = query;
                 if (query.length() >= MIN_TERM_LENGTH) {
                     fetchSongList(query);
                 }
                 return false;
             }
         });
+        mSearchView.setQuery(mSearchQuery, true);
     }
 
     private void addLookSwitcher() {
