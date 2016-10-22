@@ -9,6 +9,7 @@ import com.gmail.sanovikov71.intechtask.R;
 public class PlayerActivity extends AppCompatActivity {
 
     private static final String FRAGMENT_TAG = "FRAGMENT_TAG";
+    public static final String EXTRA_SONG_ID = "EXTRA_SONG_ID";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
