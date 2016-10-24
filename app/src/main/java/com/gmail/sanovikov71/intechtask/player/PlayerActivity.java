@@ -1,7 +1,6 @@
 package com.gmail.sanovikov71.intechtask.player;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 
 import com.gmail.sanovikov71.intechtask.R;

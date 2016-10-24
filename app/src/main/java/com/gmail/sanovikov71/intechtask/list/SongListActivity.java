@@ -8,8 +8,12 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.gmail.sanovikov71.intechtask.R;
 import com.gmail.sanovikov71.intechtask.network.DataSource;
@@ -34,12 +38,13 @@ public class SongListActivity extends AppCompatActivity {
     private String mSearchQuery;
 
     private RecyclerView mSongList;
+    private TextView mEmptyView;
 
     private GridLayoutManager mGridLayoutManager;
     private LinearLayoutManager mListLayoutManager;
 
-    public static final int AS_GRID = 1;
-    public static final int AS_LIST = 2;
+    private static final int AS_GRID = 1;
+    private static final int AS_LIST = 2;
     private int mLayoutLook;
 
     @Override
@@ -53,6 +58,7 @@ public class SongListActivity extends AppCompatActivity {
 
         mMusicService = new DataSource().getService();
 
+        mEmptyView = (TextView) findViewById(R.id.empty_view);
         mSongList = (RecyclerView) findViewById(R.id.song_list);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             mGridLayoutManager = new GridLayoutManager(this, 2);
@@ -64,6 +70,7 @@ public class SongListActivity extends AppCompatActivity {
         mAdapter = new SongListAdapter(this);
         mSongList.setAdapter(mAdapter);
 
+        showEmptyView();
     }
 
     @Override
@@ -151,16 +158,31 @@ public class SongListActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<SearchResult> call, Response<SearchResult> response) {
                 final List<Song> searchResult = response.body().getResults();
-                System.out.println("Novikov success");
-                System.out.println("Novikov searchResult.size() : " + searchResult.size());
                 mAdapter.updateDataset(searchResult);
+
+                showList();
             }
 
             @Override
             public void onFailure(Call<SearchResult> call, Throwable t) {
-                System.out.println("Novikov failure");
+                final Toast toast = Toast
+                        .makeText(SongListActivity.this, getText(R.string.error_message), Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
+
+                showEmptyView();
             }
         });
+    }
+
+    private void showList() {
+        mSongList.setVisibility(View.VISIBLE);
+        mEmptyView.setVisibility(View.GONE);
+    }
+
+    private void showEmptyView() {
+        mSongList.setVisibility(View.GONE);
+        mEmptyView.setVisibility(View.VISIBLE);
     }
 
 }

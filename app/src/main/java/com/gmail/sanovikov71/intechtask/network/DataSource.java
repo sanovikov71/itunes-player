@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DataSource {
 
-    MusicService mService;
+    private final MusicService mService;
 
     public DataSource() {
         Retrofit retrofit = new Retrofit.Builder()

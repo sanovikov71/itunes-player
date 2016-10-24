@@ -5,7 +5,7 @@ import android.media.MediaPlayer;
 
 import java.io.IOException;
 
-public class MusicHelper implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
+class MusicHelper implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
 
     private MediaPlayer mMediaPlayer;
 
@@ -43,7 +43,6 @@ public class MusicHelper implements MediaPlayer.OnPreparedListener, MediaPlayer.
             mMediaPlayer.seekTo(mProgress);
             if (!mMediaPlayer.isPlaying()) {
                 mMediaPlayer.start();
-                System.out.println("Start here lol");
             }
         }
     }
@@ -74,7 +73,4 @@ public class MusicHelper implements MediaPlayer.OnPreparedListener, MediaPlayer.
         return mMediaPlayer.getCurrentPosition();
     }
 
-    public void seekTo(int progress) {
-        mMediaPlayer.seekTo(progress);
-    }
 }

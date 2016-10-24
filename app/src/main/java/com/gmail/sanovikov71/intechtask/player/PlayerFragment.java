@@ -53,7 +53,8 @@ public class PlayerFragment extends Fragment implements View.OnClickListener, UI
             ImageView image = (ImageView) view.findViewById(R.id.image);
             Glide.with(this).load(song.getArtworkUrl100()).into(image);
             TextView name = (TextView) view.findViewById(R.id.name);
-            name.setText(song.getArtistName() + " - " + song.getTrackName());
+            String fullName = song.getArtistName() + " - " + song.getTrackName();
+            name.setText(fullName);
         }
 
         mSeekBar = (SeekBar) view.findViewById(R.id.seekbar);
@@ -154,8 +155,8 @@ public class PlayerFragment extends Fragment implements View.OnClickListener, UI
         private final WeakReference<MusicHelper> mMusicHelper;
 
         public UpdatesHandler(SeekBar seekBar, MusicHelper musicHelper) {
-            mSeekBar = new WeakReference<SeekBar>(seekBar);
-            mMusicHelper = new WeakReference<MusicHelper>(musicHelper);
+            mSeekBar = new WeakReference<>(seekBar);
+            mMusicHelper = new WeakReference<>(musicHelper);
         }
 
         @Override
@@ -168,7 +169,6 @@ public class PlayerFragment extends Fragment implements View.OnClickListener, UI
                     Message newMessage =
                             obtainMessage(UpdatesHandler.SEEKBAR_UPDATE, musicHelper.getCurrentPosition(), 0);
                     sendMessageDelayed(newMessage, DELAY_MILLIS);
-                    System.out.println("SEEKBAR UPDATE");
                 }
             }
         }

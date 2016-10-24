@@ -13,7 +13,7 @@ public class SearchResult {
     private Integer resultCount;
     @SerializedName("results")
     @Expose
-    private List<Song> results = new ArrayList<Song>();
+    private List<Song> results = new ArrayList<>();
 
     /**
      * @return The resultCount

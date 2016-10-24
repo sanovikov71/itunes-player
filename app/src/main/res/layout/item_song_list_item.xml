@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:layout_margin="@dimen/static_margins"
-    card_view:cardCornerRadius="4dp">
+    card_view:cardCornerRadius="@dimen/item_card_corner_radius">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -15,8 +15,9 @@
         <ImageView
             android:id="@+id/item_image"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:layout_alignParentTop="true"/>
+            android:layout_height="@dimen/item_image_height"
+            android:layout_alignParentTop="true"
+            android:contentDescription="@string/list_screen_artist_label"/>
 
         <TextView
             android:id="@+id/item_artist_name"

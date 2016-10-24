@@ -5,4 +5,10 @@
     <string name="action_search">Search</string>
     <string name="as_list">As list</string>
     <string name="as_grid">As grid</string>
+
+    <!-- condent descriptions-->
+    <string name="player_screen_artist_label">Player screen artist label image</string>
+    <string name="list_screen_artist_label">List screen artist label image</string>
+    <string name="error_message">Networking error. Please check your  Internet connection.</string>
+    <string name="no_data_available">Song list is empty. Please use search.</string>
 </resources>

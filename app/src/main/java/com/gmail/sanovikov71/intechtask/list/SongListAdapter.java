@@ -17,7 +17,7 @@ import com.gmail.sanovikov71.intechtask.player.PlayerActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SongListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+class SongListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final Context mContext;
     private List<Song> mData = new ArrayList<>();
@@ -66,9 +66,9 @@ public class SongListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     static class ViewHolder extends RecyclerView.ViewHolder {
 
         Song mSong;
-        ImageView mImage;
-        TextView mArtistName;
-        TextView mTrackName;
+        final ImageView mImage;
+        final TextView mArtistName;
+        final TextView mTrackName;
 
         public ViewHolder(final Context context, View view) {
             super(view);
