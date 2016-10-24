@@ -3,4 +3,6 @@
     <string name="start">start</string>
     <string name="pause">pause</string>
     <string name="action_search">Search</string>
+    <string name="as_list">As list</string>
+    <string name="as_grid">As grid</string>
 </resources>

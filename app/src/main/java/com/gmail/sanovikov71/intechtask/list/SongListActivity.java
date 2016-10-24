@@ -27,29 +27,42 @@ public class SongListActivity extends AppCompatActivity {
 
     private static final int MIN_TERM_LENGTH = 5;
     private static final String SEARCH_QUERY = "SEARCH_QUERY";
+    private static final String LAYOUT_LOOK = "LAYOUT_LOOK";
 
     private SongListAdapter mAdapter;
     private MusicService mMusicService;
     private String mSearchQuery;
-    private SearchView mSearchView;
+
+    private RecyclerView mSongList;
+
+    private GridLayoutManager mGridLayoutManager;
+    private LinearLayoutManager mListLayoutManager;
+
+    public static final int AS_GRID = 1;
+    public static final int AS_LIST = 2;
+    private int mLayoutLook;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_list);
 
+        if (savedInstanceState == null) {
+            mLayoutLook = AS_GRID;
+        }
+
         mMusicService = new DataSource().getService();
 
-        final RecyclerView cardList = (RecyclerView) findViewById(R.id.song_list);
-        final LinearLayoutManager layoutManager;
+        mSongList = (RecyclerView) findViewById(R.id.song_list);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            layoutManager = new GridLayoutManager(this, 2);
+            mGridLayoutManager = new GridLayoutManager(this, 2);
         } else {
-            layoutManager = new GridLayoutManager(this, 3);
+            mGridLayoutManager = new GridLayoutManager(this, 3);
         }
-        cardList.setLayoutManager(layoutManager);
+        mListLayoutManager = new LinearLayoutManager(this);
+        mSongList.setLayoutManager(mGridLayoutManager);
         mAdapter = new SongListAdapter(this);
-        cardList.setAdapter(mAdapter);
+        mSongList.setAdapter(mAdapter);
 
     }
 
@@ -57,18 +70,20 @@ public class SongListActivity extends AppCompatActivity {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(SEARCH_QUERY, mSearchQuery);
+        outState.putInt(LAYOUT_LOOK, mLayoutLook);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         mSearchQuery = savedInstanceState.getString(SEARCH_QUERY);
+        mLayoutLook = savedInstanceState.getInt(LAYOUT_LOOK);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         addSearch(menu);
-        addLookSwitcher();
+        addLookSwitcher(menu);
         return true;
     }
 
@@ -76,7 +91,7 @@ public class SongListActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.search, menu);
 
         final MenuItem search = menu.findItem(R.id.action_search);
-        mSearchView = (SearchView) MenuItemCompat.getActionView(search);
+        final SearchView mSearchView = (SearchView) MenuItemCompat.getActionView(search);
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -95,7 +110,40 @@ public class SongListActivity extends AppCompatActivity {
         mSearchView.setQuery(mSearchQuery, true);
     }
 
-    private void addLookSwitcher() {
+    private void addLookSwitcher(Menu menu) {
+        getMenuInflater().inflate(R.menu.change_list_look, menu);
+
+        final MenuItem item = menu.findItem(R.id.change_list_look);
+        if (mLayoutLook == AS_GRID) {
+            useGridLayout(item);
+        } else {
+            useListLayout(item);
+        }
+
+        item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (mLayoutLook == AS_GRID) {
+                    useListLayout(item);
+                } else {
+                    useGridLayout(item);
+                }
+                return false;
+            }
+        });
+
+    }
+
+    private void useListLayout(MenuItem item) {
+        mLayoutLook = AS_LIST;
+        item.setTitle(getText(R.string.as_grid));
+        mSongList.setLayoutManager(mListLayoutManager);
+    }
+
+    private void useGridLayout(MenuItem item) {
+        mLayoutLook = AS_GRID;
+        item.setTitle(getText(R.string.as_list));
+        mSongList.setLayoutManager(mGridLayoutManager);
     }
 
     private void fetchSongList(String term) {
